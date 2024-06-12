@@ -4,18 +4,14 @@ const { getManagedCacheStorage } = require('../cache');
 
 // Function to fetch track ID based on provided info
 const fetchTrackId = (info) => {
-    const url = `https://music-api.gdstudio.xyz/api.php?types=search&source=spotify&name=${encodeURIComponent(info.name)}&artist=${encodeURIComponent(info.artist.name)}`;
-
+    const url = `https://music-api.gdstudio.xyz/api.php?types=search&source=spotify&name=${encodeURIComponent(info.name)}`;
+    
     return request('GET', url)
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
+        .then((response) => response.json())
         .then((jsonBody) => {
-            if (jsonBody && typeof jsonBody === 'object' && 'id' in jsonBody) {
-                return jsonBody.id;
+            //console.log('API response:', jsonBody); // 添加这行用于调试
+            if (Array.isArray(jsonBody) && jsonBody.length > 0 && typeof jsonBody[0] === 'object' && 'id' in jsonBody[0]) {
+                return jsonBody[0].id;
             } else {
                 throw new Error('Invalid response structure for fetching track ID');
             }
@@ -32,15 +28,10 @@ const track = (id) => {
     const url = `https://music-api.gdstudio.xyz/api.php?types=url&source=spotify&id=${id}&br=${bitrate}`;
 
     return request('GET', url)
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
+        .then((response) => response.json())
         .then((jsonBody) => {
             if (jsonBody && typeof jsonBody === 'object' && 'url' in jsonBody) {
-                return jsonBody.br > 0 ? jsonBody.url : Promise.reject('Invalid bitrate');
+                return jsonBody.br > 0 ? 'https://music-api.gdstudio.xyz/'+jsonBody.url : Promise.reject('Invalid bitrate');
             } else {
                 throw new Error('Invalid response structure for fetching track URL');
             }
